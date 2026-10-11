@@ -1,0 +1,14 @@
+backend/build/
+backend/build-win/
+dist/
+*.o
+*.exe
+*.osm.pbf
+*.graph.bin
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+data/processed/
+data/tile_cache/
+tile_cache/
+.env

@@ -1,0 +1,230 @@
+openapi: 3.0.3
+info:
+  title: IndiaRoute AI API
+  version: 1.0.0
+  description: |
+    Route optimisation API implemented in C (libmicrohttpd + cJSON).
+    Documentation artifact only; the server is backend/src/api.c.
+    See docs/api.md for prose and examples.
+servers:
+  - url: http://127.0.0.1:8080/api/v1
+components:
+  securitySchemes:
+    adminToken:
+      type: http
+      scheme: bearer
+  schemas:
+    Error:
+      type: object
+      required: [status, error]
+      properties:
+        status: { type: string, enum: [error] }
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string, example: NO_ROUTE }
+            message: { type: string }
+            field: { type: string }
+    Point:
+      type: object
+      additionalProperties: false
+      required: [latitude, longitude]
+      properties:
+        latitude: { type: number, minimum: -90, maximum: 90 }
+        longitude: { type: number, minimum: -180, maximum: 180 }
+    RouteRequest:
+      type: object
+      additionalProperties: false
+      required: [origin, destination]
+      properties:
+        origin: { $ref: '#/components/schemas/Point' }
+        destination: { $ref: '#/components/schemas/Point' }
+        mode: { type: string, enum: [fastest, shortest], default: fastest }
+        algorithm: { type: string, enum: [dijkstra, astar], default: dijkstra }
+        alternatives: { type: integer, minimum: 0, maximum: 3, default: 0 }
+        avoid:
+          type: object
+          additionalProperties: false
+          properties:
+            tolls: { type: boolean, default: false }
+            restricted: { type: boolean, default: false }
+        include_polyline: { type: boolean, default: false }
+    Instruction:
+      type: object
+      properties:
+        type: { type: string, enum: [depart, continue, slight_left, slight_right, left, right, sharp_left, sharp_right, uturn, arrive] }
+        text: { type: string }
+        road: { type: string }
+        distance_meters: { type: number }
+        duration_seconds: { type: number }
+        location: { type: array, items: { type: number }, minItems: 2, maxItems: 2 }
+        geometry_index: { type: integer }
+    Route:
+      type: object
+      properties:
+        distance_meters: { type: number }
+        estimated_duration_seconds: { type: number }
+        baseline_duration_seconds: { type: number }
+        traffic_affected_segments: { type: integer }
+        segment_count: { type: integer }
+        nodes_settled: { type: integer }
+        geometry:
+          type: array
+          items: { type: array, items: { type: number }, minItems: 2, maxItems: 2 }
+        polyline: { type: string }
+        instructions: { type: array, items: { $ref: '#/components/schemas/Instruction' } }
+        waypoints:
+          type: array
+          items: { type: array, items: { type: number } }
+    TrafficData:
+      type: object
+      properties:
+        available: { type: boolean }
+        live: { type: boolean }
+        simulated: { type: boolean }
+        admin_overrides: { type: boolean }
+        incident_delay_model: { type: boolean }
+        closed_segments: { type: integer }
+        message: { type: string }
+        attribution: { type: string }
+    RouteResponse:
+      type: object
+      properties:
+        status: { type: string, enum: [success] }
+        routing_mode: { type: string }
+        algorithm: { type: string }
+        distance_meters: { type: number }
+        estimated_duration_seconds: { type: number }
+        traffic_data: { $ref: '#/components/schemas/TrafficData' }
+        snapped: { type: object }
+        route: { $ref: '#/components/schemas/Route' }
+        alternatives: { type: array, items: { $ref: '#/components/schemas/Route' } }
+        alternatives_note: { type: string }
+        instructions_note: { type: string }
+        compute_ms: { type: number }
+        dataset: { type: string }
+        attribution: { type: string }
+    IncidentRequest:
+      type: object
+      additionalProperties: false
+      required: [type, latitude, longitude]
+      properties:
+        type: { type: string, enum: [accident, closure, congestion, roadwork, hazard] }
+        latitude: { type: number }
+        longitude: { type: number }
+        description: { type: string, maxLength: 200 }
+        expires_in_minutes: { type: integer, minimum: 5, maximum: 1440, default: 120 }
+        both_directions: { type: boolean, default: true }
+        verified: { type: boolean, description: admin only }
+        simulated: { type: boolean, description: admin only }
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+paths:
+  /health:
+    get:
+      summary: Service health
+      responses: { '200': { description: OK } }
+  /config:
+    get:
+      summary: Frontend configuration (tiles, attribution, bbox)
+      responses: { '200': { description: OK } }
+  /network/stats:
+    get:
+      summary: Imported graph statistics and coverage metadata
+      responses: { '200': { description: OK } }
+  /locations/search:
+    get:
+      summary: Search places in the local index
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, maxLength: 100 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 25, default: 10 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 1000, default: 0 } }
+      responses: { '200': { description: OK }, '400': { $ref: '#/components/responses/Error' } }
+  /locations/snap:
+    get:
+      summary: Nearest routable road node
+      parameters:
+        - { name: lat, in: query, required: true, schema: { type: number } }
+        - { name: lon, in: query, required: true, schema: { type: number } }
+      responses: { '200': { description: OK }, '400': { $ref: '#/components/responses/Error' } }
+  /routes:
+    post:
+      summary: Compute a route
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RouteRequest' } } }
+      responses:
+        '200': { description: Route, content: { application/json: { schema: { $ref: '#/components/schemas/RouteResponse' } } } }
+        '400': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+        '429': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /routes/shortest:
+    post:
+      summary: Minimum-distance route
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RouteRequest' } } } }
+      responses: { '200': { description: Route }, '400': { $ref: '#/components/responses/Error' } }
+  /routes/alternatives:
+    post:
+      summary: Best route plus alternatives (default 2)
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RouteRequest' } } } }
+      responses: { '200': { description: Route }, '400': { $ref: '#/components/responses/Error' } }
+  /traffic/segments:
+    get:
+      summary: Segments with changed weights in a bbox
+      parameters:
+        - { name: bbox, in: query, required: true, schema: { type: string, example: '77.5,12.9,77.7,13.1' } }
+      responses: { '200': { description: OK }, '400': { $ref: '#/components/responses/Error' } }
+  /incidents:
+    get:
+      summary: Verified active incidents
+      responses: { '200': { description: OK } }
+    post:
+      summary: Report an incident (pending moderation)
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/IncidentRequest' } } } }
+      responses: { '202': { description: Accepted }, '400': { $ref: '#/components/responses/Error' }, '422': { $ref: '#/components/responses/Error' } }
+  /admin/traffic/updates:
+    post:
+      security: [ { adminToken: [] } ]
+      summary: Operator travel-time updates
+      responses: { '200': { description: Per-item results }, '401': { $ref: '#/components/responses/Error' }, '403': { $ref: '#/components/responses/Error' } }
+  /admin/traffic/simulate:
+    post:
+      security: [ { adminToken: [] } ]
+      summary: Add clearly labelled simulated congestion
+      responses: { '200': { description: OK } }
+  /admin/traffic:
+    delete:
+      security: [ { adminToken: [] } ]
+      summary: Clear observations of one source
+      parameters:
+        - { name: source, in: query, schema: { type: string, enum: [simulated, admin, live], default: simulated } }
+      responses: { '200': { description: OK } }
+  /admin/incidents:
+    get:
+      security: [ { adminToken: [] } ]
+      summary: Moderation queue
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [pending, verified, rejected, expired, all] } }
+      responses: { '200': { description: OK } }
+    post:
+      security: [ { adminToken: [] } ]
+      summary: Create an incident (may be verified/simulated)
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/IncidentRequest' } } } }
+      responses: { '201': { description: Created }, '202': { description: Pending } }
+  /admin/incidents/{id}/verify:
+    post:
+      security: [ { adminToken: [] } ]
+      parameters: [ { name: id, in: path, required: true, schema: { type: integer } } ]
+      responses: { '200': { description: OK }, '404': { $ref: '#/components/responses/Error' } }
+  /admin/incidents/{id}/reject:
+    post:
+      security: [ { adminToken: [] } ]
+      parameters: [ { name: id, in: path, required: true, schema: { type: integer } } ]
+      responses: { '200': { description: OK }, '404': { $ref: '#/components/responses/Error' } }

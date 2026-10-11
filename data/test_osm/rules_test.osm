@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  HAND-WRITTEN TEST FILE (not real map data). Exercises the importer's tag
+  rules; expected results are asserted in backend/tests/test_osm_rules.c:
+    way 100 primary two-way 1-2-3     -> edges 1->3, 3->1 (node 2 = shape point)
+    way 101 residential oneway=yes 3-4 -> edge 3->4 only
+    way 102 footway 2-5               -> dropped (not routable)
+    way 103 service access=private 4-6 -> dropped (no access)
+    way 104 trunk toll=yes 4-7        -> edges 4->7, 7->4 with TOLL flag
+    way 105 tertiary oneway=-1 7-8    -> edge 8->7 only
+    way 106 building                  -> dropped (not a highway)
+    way 107 residential access=destination 8-10 -> edges with RESTRICTED flag
+    node 9 place=village              -> one place, state Karnataka
+-->
+<osm version="0.6" generator="hand-written">
+  <node id="1" lat="12.9700" lon="77.5900" version="1"/>
+  <node id="2" lat="12.9700" lon="77.5910" version="1"/>
+  <node id="3" lat="12.9700" lon="77.5920" version="1"/>
+  <node id="4" lat="12.9710" lon="77.5920" version="1"/>
+  <node id="5" lat="12.9690" lon="77.5910" version="1"/>
+  <node id="6" lat="12.9720" lon="77.5930" version="1"/>
+  <node id="7" lat="12.9720" lon="77.5920" version="1"/>
+  <node id="8" lat="12.9730" lon="77.5920" version="1"/>
+  <node id="10" lat="12.9740" lon="77.5920" version="1"/>
+  <node id="9" lat="12.9705" lon="77.5905" version="1">
+    <tag k="place" v="village"/>
+    <tag k="name" v="Testpur"/>
+    <tag k="addr:state" v="Karnataka"/>
+    <tag k="population" v="1200"/>
+  </node>
+  <way id="100" version="1">
+    <nd ref="1"/><nd ref="2"/><nd ref="3"/>
+    <tag k="highway" v="primary"/><tag k="name" v="Test Main Road"/><tag k="ref" v="SH 99"/>
+    <tag k="maxspeed" v="40"/>
+  </way>
+  <way id="101" version="1">
+    <nd ref="3"/><nd ref="4"/>
+    <tag k="highway" v="residential"/><tag k="oneway" v="yes"/>
+  </way>
+  <way id="102" version="1">
+    <nd ref="2"/><nd ref="5"/>
+    <tag k="highway" v="footway"/>
+  </way>
+  <way id="103" version="1">
+    <nd ref="4"/><nd ref="6"/>
+    <tag k="highway" v="service"/><tag k="access" v="private"/>
+  </way>
+  <way id="104" version="1">
+    <nd ref="4"/><nd ref="7"/>
+    <tag k="highway" v="trunk"/><tag k="toll" v="yes"/>
+  </way>
+  <way id="105" version="1">
+    <nd ref="7"/><nd ref="8"/>
+    <tag k="highway" v="tertiary"/><tag k="oneway" v="-1"/>
+  </way>
+  <way id="106" version="1">
+    <nd ref="1"/><nd ref="5"/><nd ref="6"/><nd ref="1"/>
+    <tag k="building" v="yes"/>
+  </way>
+  <way id="107" version="1">
+    <nd ref="8"/><nd ref="10"/>
+    <tag k="highway" v="residential"/><tag k="access" v="destination"/>
+  </way>
+</osm>

@@ -1,0 +1,16 @@
+# SYNTHETIC TEST NETWORK — NOT REAL ROADS.
+# Coordinates are placed in an arbitrary rural area only so that geographic
+# heuristics (A*) and, later, map display have realistic scales. Junction
+# names are invented. See data/README.md for the full diagram and hand-
+# calculated expected routes.
+id,lat,lon,name
+1,17.00,79.00,Junction A
+2,17.00,79.02,Junction B
+3,17.00,79.04,Junction C
+4,17.00,79.06,Junction D
+5,17.02,79.01,Highway Interchange E
+6,17.02,79.05,Highway Interchange F
+7,16.98,79.03,Junction G
+8,17.01,79.03,Junction H
+9,16.90,79.20,Island I
+10,16.90,79.21,Island J

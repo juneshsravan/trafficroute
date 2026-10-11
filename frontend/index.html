@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IndiaRoute AI</title>
+  <meta name="description" content="Route planner for Indian roads. Routes are computed by a C graph-routing engine.">
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="/vendor/leaflet/leaflet.js" defer></script>
+  <script type="module" src="/js/app.js"></script>
+</head>
+<body>
+  <div id="map" role="application" aria-label="Map. Click to set the start, then the destination."></div>
+
+  <aside class="rail" id="rail" aria-label="Route planner">
+    <header class="rail-head">
+      <h1 class="brand">IndiaRoute</h1>
+      <button class="sheet-toggle" id="sheet-toggle" type="button" aria-expanded="true" aria-controls="rail-body">Hide planner</button>
+    </header>
+
+    <div class="rail-body" id="rail-body">
+      <div class="dataset-note" id="dataset-note" hidden></div>
+
+      <form class="planner" id="planner" autocomplete="off">
+        <div class="places">
+          <div class="field">
+            <label for="origin-input">From</label>
+            <input id="origin-input" type="text" placeholder="City, town, village — or click the map" role="combobox"
+                   aria-autocomplete="list" aria-expanded="false" aria-controls="origin-list">
+            <ul class="suggestions" id="origin-list" role="listbox" hidden></ul>
+          </div>
+          <button class="swap" id="swap" type="button" aria-label="Swap start and destination" title="Swap">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 4v13M7 17l-3-3M7 17l3-3M17 20V7M17 7l-3 3M17 7l3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="field">
+            <label for="dest-input">To</label>
+            <input id="dest-input" type="text" placeholder="City, town, village — or click the map" role="combobox"
+                   aria-autocomplete="list" aria-expanded="false" aria-controls="dest-list">
+            <ul class="suggestions" id="dest-list" role="listbox" hidden></ul>
+          </div>
+        </div>
+
+        <fieldset class="mode">
+          <legend class="visually-hidden">Optimise for</legend>
+          <label><input type="radio" name="mode" value="fastest" checked><span>Fastest</span></label>
+          <label><input type="radio" name="mode" value="shortest"><span>Shortest</span></label>
+        </fieldset>
+
+        <details class="options">
+          <summary>Route options</summary>
+          <label class="check"><input type="checkbox" id="avoid-tolls"> Avoid toll roads</label>
+          <label class="check"><input type="checkbox" id="avoid-restricted"> Avoid restricted-access roads</label>
+          <label class="row">Alternatives
+            <select id="alternatives">
+              <option value="0">None</option>
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+            </select>
+          </label>
+          <label class="row">Algorithm
+            <select id="algorithm">
+              <option value="dijkstra" selected>Dijkstra</option>
+              <option value="astar">A*</option>
+            </select>
+          </label>
+        </details>
+
+        <button class="go" id="go" type="submit" disabled>Find route</button>
+        <p class="hint" id="hint">Choose a start and destination.</p>
+      </form>
+
+      <div class="traffic-banner" id="traffic-banner" role="status" hidden></div>
+      <div class="error" id="error" role="alert" hidden></div>
+
+      <section class="result" id="result" hidden aria-live="polite">
+        <div class="milestone" id="milestone">
+          <div class="milestone-cap" id="milestone-road">Route</div>
+          <div class="milestone-body">
+            <span class="km" id="milestone-km">0</span>
+            <span class="unit">km</span>
+            <span class="time" id="milestone-time"></span>
+          </div>
+        </div>
+        <p class="route-meta" id="route-meta"></p>
+
+        <div class="alts" id="alts" hidden>
+          <h2>Other routes</h2>
+          <ul id="alt-list"></ul>
+        </div>
+
+        <div class="steps">
+          <h2>Directions</h2>
+          <ol id="steps"></ol>
+          <p class="fine" id="steps-note"></p>
+        </div>
+      </section>
+
+      <section class="layers">
+        <h2>On the map</h2>
+        <label class="check"><input type="checkbox" id="show-traffic" checked> Traffic and closures</label>
+        <label class="check"><input type="checkbox" id="show-incidents" checked> Verified incidents</label>
+        <button class="report" id="report-btn" type="button">Report a problem on the road</button>
+        <form class="report-form" id="report-form" hidden>
+          <p class="fine">Click the map where the problem is, then send. Reports are checked by a moderator before they change any route.</p>
+          <label class="row">What happened
+            <select id="report-type">
+              <option value="accident">Accident</option>
+              <option value="closure">Road closed</option>
+              <option value="roadwork">Roadwork</option>
+              <option value="congestion">Heavy traffic</option>
+              <option value="hazard">Hazard</option>
+            </select>
+          </label>
+          <label class="stack">Details (optional)
+            <input id="report-desc" type="text" maxlength="200" placeholder="e.g. Left lane blocked near the bridge">
+          </label>
+          <p class="fine" id="report-where">No location chosen yet.</p>
+          <div class="report-actions">
+            <button type="submit" id="report-send" disabled>Send report</button>
+            <button type="button" id="report-cancel" class="link">Cancel</button>
+          </div>
+        </form>
+        <p class="fine" id="report-status" role="status"></p>
+      </section>
+
+      <footer class="credits" id="credits"></footer>
+    </div>
+  </aside>
+</body>
+</html>

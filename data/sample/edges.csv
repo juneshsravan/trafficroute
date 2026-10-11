@@ -1,0 +1,17 @@
+# SYNTHETIC TEST NETWORK — NOT REAL ROADS.
+# distance_m empty => computed as straight-line (haversine) length.
+# speed_kmh empty  => road-class default (see graph.c).
+# oneway=0 creates both directions (reverse edge id = -id).
+id,from_id,to_id,distance_m,road_class,speed_kmh,oneway,toll,restricted,name
+1,1,2,,residential,,0,0,0,Village Road
+2,2,3,,residential,,0,0,0,Village Road
+3,3,4,,residential,,0,0,0,Village Road
+4,1,5,3000,trunk,70,0,0,0,Sample Trunk Highway
+5,5,6,4800,trunk,70,0,1,0,Sample Trunk Highway (Toll)
+6,6,4,3000,trunk,70,0,0,0,Sample Trunk Highway
+7,2,7,2600,tertiary,35,0,0,0,G Link Road
+8,7,4,4000,tertiary,35,0,0,0,G Link Road
+9,2,8,,secondary,45,1,0,0,H One-way Street
+10,8,4,,secondary,45,1,0,0,H One-way Street
+11,7,3,2600,service,15,0,0,1,Depot Service Road
+12,9,10,,residential,,0,0,0,Island Lane

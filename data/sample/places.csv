@@ -1,0 +1,12 @@
+# SYNTHETIC places for the synthetic sample network (not real locations).
+name,type,lat,lon,state,district
+Junction A,junction,17.00,79.00,Synthetic State,Sample District
+Junction B,junction,17.00,79.02,Synthetic State,Sample District
+Junction C,junction,17.00,79.04,Synthetic State,Sample District
+Junction D,junction,17.00,79.06,Synthetic State,Sample District
+Highway Interchange E,junction,17.02,79.01,Synthetic State,Sample District
+Highway Interchange F,junction,17.02,79.05,Synthetic State,Sample District
+Junction G,junction,16.98,79.03,Synthetic State,Sample District
+Junction H,junction,17.01,79.03,Synthetic State,Sample District
+Island I,junction,16.90,79.20,Synthetic State,Island District
+Island J,junction,16.90,79.21,Synthetic State,Island District
